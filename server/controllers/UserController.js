@@ -1,0 +1,141 @@
+const User = require('../models/UserModel');
+const bcrypt = require('bcryptjs');
+const generateOTP = require('../utils/generateOtp');
+const { sendEmail } = require('../utils/sendEmail');
+const { uploadFile } = require('../utils/googleDrive');
+const jwt = require('jsonwebtoken');
+
+exports.createUser = async (req, res) => {
+    try {
+        const otp = generateOTP()
+        req.body.otp = otp
+        if (req.file) {
+            const profilePhoto = await uploadFile(req.file.buffer, req.file.originalname, req.file.mimetype)
+            console.log(profilePhoto);
+
+            req.body.user_photo = `https://drive.google.com/uc?id=${profilePhoto.id}`
+        }
+        const hashedPassword = await bcrypt.hash(req.body.user_password, 10)
+        req.body.user_password = hashedPassword
+        const lastUser = await User.findOne().sort({ createdAt: -1 });
+        const nextId = lastUser ? parseInt(lastUser.user_id) + 1 : 1;
+        req.body.user_id = String(nextId).padStart(6, '0');
+        await sendEmail(req.body.user_email, otp)
+        await User.create(req.body)
+        return res.status(201).json({ message: "Muvaffaqiyatli ro'yhatdan o'tdingiz", email: req.body.user_email })
+
+    } catch (err) {
+        console.log(err.message)
+        return res.status(500).json({ message: "Serverda xatolik" });
+    }
+}
+
+exports.continueWithGoogle = async (req, res) => {
+    try {
+        const { user_email, user_name, user_photo, user_nickname } = req.body
+        const user = await User.findOne({ user_email })
+
+        if (!user) {
+            const lastUser = await User.findOne().sort({ createdAt: -1 });
+            const nextId = lastUser ? parseInt(lastUser.user_id) + 1 : 1;
+            const newUser = await User.create({
+                user_email, user_name, user_photo, user_nickname, status: 'verified', user_password: null, user_id: String(nextId).padStart(6, '0'), otp: '000000'
+            })
+            const payload = {
+                userId: newUser._id
+            }
+            const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' })
+            return res.status(201).json({ token, email: user_email })
+        } else {
+            const payload = {
+                userId: user._id
+            }
+            const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' })
+            return res.status(200).json({ token, email: user.user_email })
+        }
+
+    } catch (err) {
+        console.log(err.message)
+        return res.status(500).json({ message: "Serverda xatolik" });
+    }
+}
+
+exports.verifyOtp = async (req, res) => {
+    try {
+        const { user_email, otp } = req.body
+        const otpUser = await User.findOne({ user_email })
+        if (!otpUser) {
+            return res.status(404).json({ message: "Bunday foydalanuvchi topilmadi" });
+        }
+        if (otpUser.status !== 'unverified') {
+            return res.status(409).json({ message: "Sizning hisobingiz allaqachon tasdiqlangan" })
+        }
+        const isMatch = otpUser.otp === otp
+        if (!isMatch) {
+            return res.status(401).json({ message: "Xato kod kiritildi" })
+        }
+        otpUser.status = 'verified'
+        await otpUser.save()
+        const payload = {
+            userId: otpUser._id
+        }
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' })
+        return res.status(201).json({ token, email: user_email })
+
+    } catch (err) {
+        console.log(err.message)
+        return res.status(500).json({ message: "Serverda xatolik" });
+    }
+}
+
+exports.resendOtp = async (req, res) => {
+    try {
+        const { user_email } = req.body;
+
+        const user = await User.findOne({ user_email });
+
+        if (!user) {
+            return res.status(404).json({ message: "Bunday foydalanuvchi topilmadi" });
+        }
+
+        if (user.status === 'verified') {
+            return res.status(409).json({ message: "Bu foydalanuvchi allaqachon tasdiqlangan" });
+        }
+
+        const newOtp = generateOTP();
+        user.otp = newOtp;
+        await user.save();
+
+        await sendEmail(user.user_email, newOtp);
+
+        return res.status(200).json({ message: "Yangi kod yuborildi", email: user.user_email });
+
+    } catch (err) {
+        console.log(err.message);
+        return res.status(500).json({ message: "Serverda xatolik" });
+    }
+}
+
+exports.loginUser = async (req, res) => {
+    try {
+        const { user_email, user_password } = req.body
+        const user = await User.findOne({ user_email })
+        if (!user) {
+            return res.status(400).json({ message: 'Bunday hisob mavjud emas' })
+        }
+        const isMatch = await bcrypt.compare(user_password, user.user_password)
+        if (!isMatch) {
+            return res.status(401).json({ message: "Parol noto'g'ri" });
+        }
+        
+        const payload = {
+            userId: user._id
+        }
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' });
+        return res.status(201).json({ token, email: user_email });
+
+    } catch (err) {
+        console.log(err.message)
+        return res.status(500).json({ message: "Serverda xatolik" });
+    }
+}
