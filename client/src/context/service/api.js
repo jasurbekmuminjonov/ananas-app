@@ -4,7 +4,7 @@ const baseQuery = fetchBaseQuery({
   // baseUrl: "http://localhost:8080/",
   baseUrl: "https://ananas-server.vercel.app/",
   prepareHeaders: (headers) => {
-    const token = Cookies.get("token");
+    const token = localStorage.getItem("token");
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }
@@ -20,7 +20,7 @@ const customBaseQuery = async (args, api, extraOptions) => {
 
   if (result.error && result.error.status === 401) {
     localStorage.clear();
-    window.location.href = "/";
+    window.window.location.href = "/";
   }
 
   return result;
@@ -28,7 +28,7 @@ const customBaseQuery = async (args, api, extraOptions) => {
 
 export const api = createApi({
   reducerPath: "splitApi",
-  baseQuery: customBaseQuery, 
+  baseQuery: customBaseQuery,
   tagTypes: [],
   endpoints: () => ({}),
 });

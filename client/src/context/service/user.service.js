@@ -44,9 +44,33 @@ export const userApi = api.injectEndpoints({
         body,
       }),
       invalidatesTags: ['User']
-
     }),
-
+    checkNickname: builder.mutation({
+      query: (body) => ({
+        url: '/user/check/nickname',
+        body,
+        method: "POST"
+      })
+    }),
+    checkGoogle: builder.mutation({
+      query: (body) => ({
+        url: '/user/check/google',
+        body,
+        method: "POST"
+      })
+    }),
+    getOtherUsers: builder.query({
+      query: () => ({
+        url: '/user/get/others',
+        method: "GET",
+      })
+    }),
+    getSelfUser: builder.query({
+      query: () => ({
+        url: '/user/get/self',
+        method: "GET",
+      })
+    })
   }),
 });
 
@@ -55,5 +79,9 @@ export const {
   useCreateUserMutation,
   useResendOtpMutation,
   useUserGoogleMutation,
-  useVerifyUserMutation
+  useVerifyUserMutation,
+  useCheckNicknameMutation,
+  useCheckGoogleMutation,
+  useGetOtherUsersQuery,
+  useGetSelfUserQuery
 } = userApi;

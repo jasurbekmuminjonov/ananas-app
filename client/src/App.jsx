@@ -1,12 +1,12 @@
 import React from 'react';
-import Cookies from 'js-cookie';
-import Auth from './pages/Auth';
+import Auth from './pages/Login';
 import Layout from './layout/Layout';
+import AuthLayout from './layout/AuthLayout';
 
 const App = () => {
-  const token = Cookies.get('token')
+  const token = localStorage.getItem('token')
   return (
-    token ? <Layout /> : <Auth />
+    token ? <Layout /> : <AuthLayout />
   );
 };
 

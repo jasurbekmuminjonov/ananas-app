@@ -1,42 +1,56 @@
-import { GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
-import { useUserGoogleMutation } from "../context/service/user.service";
-import Cookies from "js-cookie";
+import GoogleLogin from "react-google-login";
+import { useCheckGoogleMutation, useUserGoogleMutation } from "../context/service/user.service";
+import { FcGoogle } from "react-icons/fc";
+import { gapi } from "gapi-script";
+import { useEffect } from 'react';
 const GoogleLoginButton = () => {
     const [userGoogle] = useUserGoogleMutation()
-    const handleSuccess = async (credentialResponse) => {
-        try {
+    const [checkGoogle] = useCheckGoogleMutation()
 
-            const decoded = jwtDecode(credentialResponse.credential);
-            const username = decoded.email.split("@")[0];
-            const data = {
-                user_email: decoded.email,
-                user_name: decoded.name,
-                user_photo: decoded.picture,
-                user_nickname: username,
-            }
-
-            const response = await userGoogle(data).unwrap()
-
-            Cookies.set('token', response.token)
-            Cookies.set('email', response.email)
-            window.location.href = '/'
-
-        } catch (err) {
-            console.log(err);
-
+    useEffect(() => {
+        function start() {
+            gapi.client.init({
+                clientId: '781252775123-6du9tno7el7e62rd28ve6a4tnjrmqvtk.apps.googleusercontent.com',
+                scope: "",
+            });
         }
-
-    };
-
-    const handleError = (err) => {
-        console.log(err);
-    };
+        gapi.load("client:auth2", start);
+    }, []);
 
     return (
         <GoogleLogin
-            onSuccess={handleSuccess}
-            onError={handleError}
+            clientId={'781252775123-6du9tno7el7e62rd28ve6a4tnjrmqvtk.apps.googleusercontent.com'}
+            buttonText="Google bilan davom etish"
+            onSuccess={async (res) => {
+
+                try {
+                    const isExist = await checkGoogle({ user_email: res.profileObj.email })
+                    if (isExist.data) {
+                        const response = await userGoogle({ user_email: res.profileObj.email })
+                        localStorage.setItem('token', response.data.token)
+                        localStorage.setItem('email', response.data.email)
+                        localStorage.setItem('user_id', response.data.user_id)
+                        window.location.href = '/'
+                    } else {
+                        localStorage.setItem('user_data', JSON.stringify({
+                            user_email: res.profileObj.email,
+                            user_photo: res.profileObj.imageUrl
+                        }))
+                        window.location.href = '/register'
+                    }
+                } catch (err) {
+                    console.log(err);
+                }
+            }}
+            onFailure={(res) => {
+            }}
+            cookiePolicy={"single_host_origin"}
+            render={(renderProps) => (
+                <button onClick={renderProps.onClick} disabled={renderProps.disabled}>
+                    <FcGoogle size={20} />
+                    Google bilan davom etish
+                </button>
+            )}
         />
     );
 };
