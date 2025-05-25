@@ -26,7 +26,7 @@ exports.createUser = async (req, res) => {
 
     } catch (err) {
         console.log(err.message)
-        return res.status(500).json({ message: "Serverda xatolik" });
+        return res.status(500).json({ message: "Serverda xatolik", err });
     }
 }
 
