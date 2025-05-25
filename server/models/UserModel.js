@@ -1,10 +1,7 @@
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
-    user_name: {
-        type: String,
-        required: true
-    },
+
     user_nickname: {
         type: String,
         required: true,
@@ -24,13 +21,26 @@ const UserSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    followers: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        }
+    ],
+    followings: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        }
+    ],
     user_photo: {
         type: String,
-        default: 'https://drive.google.com/uc?id=1Y5mh4mzmieroBRHczQuI1o9RNPXpDu2y'
+        default: 'https://drive.google.com/thumbnail?id=1Y5mh4mzmieroBRHczQuI1o9RNPXpDu2y&sz=w1000'
     },
     otp: {
         type: String,
-        required: true
+        required: true,
+        default: null
     },
     status: {
         type: String,
@@ -39,7 +49,8 @@ const UserSchema = new mongoose.Schema({
     },
     user_password: {
         type: String,
-        required: true,
+        // required: true,
+        default: null
     },
     user_id: {
         type: String,

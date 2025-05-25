@@ -24,7 +24,7 @@ async function uploadFile(fileBuffer, fileName, mimeType) {
             },
             media: {
                 mimeType: mimeType,
-                 body: bufferToStream(fileBuffer)
+                body: bufferToStream(fileBuffer)
             }
         });
         const fileId = response.data.id;
@@ -36,8 +36,11 @@ async function uploadFile(fileBuffer, fileName, mimeType) {
                 type: 'anyone'
             }
         });
+
         return response.data;
     } catch (error) {
+        console.log(error);
+
         throw new Error(error.message);
     }
 }
