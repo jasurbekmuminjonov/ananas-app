@@ -15,7 +15,6 @@
     "antd": "^5.25.1",
     "gapi-script": "^1.2.0",
     "js-cookie": "^3.0.5",
-    "jwt-decode": "^4.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-google-login": "^5.2.2",
