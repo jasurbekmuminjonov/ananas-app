@@ -81,7 +81,7 @@ const Register = () => {
                     >
                         <Input style={{ height: "40px", borderRadius: "0px" }} placeholder="Foydalanuvchi nomi kiriting" type="text" />
                     </Form.Item>
-                    <Form.Item valuePropName="file"
+                    {/* <Form.Item valuePropName="file"
                         getValueFromEvent={e => {
                             if (Array.isArray(e)) {
                                 return e;
@@ -89,7 +89,7 @@ const Register = () => {
                             return e && e.target ? e.target.files[0] : null;
                         }} name='user_photo' label='Profil rasmi'>
                         <Input disabled={userData} type="file" style={{ height: "40px", borderRadius: "0px" }} />
-                    </Form.Item>
+                    </Form.Item> */}
                     <Form.Item label="Parol" name='user_password' required rules={!userData ? [
                         { required: true, message: "Parolni kiriting" }
                     ] : []}>
