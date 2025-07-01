@@ -2,7 +2,8 @@ import { createApi, fetchBaseQuery, retry } from "@reduxjs/toolkit/query/react";
 import Cookies from "js-cookie";
 const baseQuery = fetchBaseQuery({
   // baseUrl: "http://localhost:8080/",
-  baseUrl: "https://ananas-server.vercel.app/",
+  // baseUrl: "https://ananas-server.vercel.app/",
+  baseUrl: "http://34.30.21.85:8080/",
   prepareHeaders: (headers) => {
     const token = localStorage.getItem("token");
     if (token) {
